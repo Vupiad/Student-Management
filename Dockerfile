@@ -1,12 +1,13 @@
-# Build stage
-FROM maven:3.9-eclipse-temurin-17 AS builder
-WORKDIR /build
-COPY . .
+# Stage 1: Build
+FROM maven:3.9.4-eclipse-temurin-21 AS build
+WORKDIR /app
+COPY pom.xml .
+COPY src ./src
 RUN mvn clean package -DskipTests
 
-# Runtime stage
-FROM eclipse-temurin:17-jre-alpine
+# Stage 2: Run
+FROM eclipse-temurin:21-jre
 WORKDIR /app
-COPY --from=builder /build/target/student-management-0.0.1-SNAPSHOT.jar .
+COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
-CMD ["java", "-jar", "student-management-0.0.1-SNAPSHOT.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
